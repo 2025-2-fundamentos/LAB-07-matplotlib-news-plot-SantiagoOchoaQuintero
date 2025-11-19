@@ -1,9 +1,10 @@
+# pylint: disable=line-too-long
 """
-Escriba el codigo que ejecute la accion solicitada en cada pregunta.
+Escriba el codigo que ejecute la accion solicitada.
 """
-
-# pylint: disable=import-outside-toplevel
-
+import os
+import matplotlib.pyplot as plt
+import pandas as pd
 
 def pregunta_01():
     """
@@ -16,84 +17,70 @@ def pregunta_01():
     El gráfico debe salvarse al archivo `files/plots/news.png`.
 
     """
-    import pandas as pd
-    import matplotlib.pyplot as plt
+    input_path = 'files/input/news.csv' 
+    output_path = 'files/plots/news.png'
 
-    df = pd.read_csv('files/input/news.csv', index_col=0)
+    output_dir = os.path.dirname(output_path)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    df = pd.read_csv(input_path, index_col=0)
+
     colors = {
-        'Television': 'dimgrey',  # Gris oscuro
-        'Newspaper': 'grey',      # Gris intermedio
-        'Radio': 'lightgrey',     # Gris claro
-        'Internet': 'tab:blue'    # Azul para destacar
+        'Television': 'dimgrey',
+        'Newspaper': 'grey',
+        'Radio': 'lightgrey',
+        'Internet': 'tab:blue'  
     }
-
-    z_order = {
+    
+    zorders = {
         'Television': 1,
         'Newspaper': 1,
         'Radio': 1,
-        'Internet': 2  # Queda por encima de las demás líneas [00:06:08]
+        'Internet': 2  
     }
-
-    line_widths = {
+    
+    linewidths = {
         'Television': 2,
         'Newspaper': 2,
         'Radio': 2,
-        'Internet': 4  # Línea más gruesa [00:07:17]
+        'Internet': 4  
     }
 
-    first_year = df.index[0]
-    last_year = df.index[-1]
-
-    # 3. Inicializar la Figura y el Título
     plt.figure(figsize=(10, 6))
-    plt.title("Fuentes de Noticias Utilizadas (2001-2010)", fontsize=16)
-
+    
     for col in df.columns:
         plt.plot(
-            df.index,
-            df[col],
-            color=colors[col],
-            linewidth=line_widths[col],
-            zorder=z_order[col]
+            df.index, 
+            df[col], 
+            color=colors[col], 
+            label=col, 
+            linewidth=linewidths[col],
+            zorder=zorders[col]
         )
 
-    plt.gca().spines['right'].set_visible(False)
-    plt.gca().spines['top'].set_visible(False)
+    plt.title("How people get their news", fontsize=16)
+    
 
-    plt.gca().get_yaxis().set_visible(False)
+    plt.gca().spines['top'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
+    plt.gca().spines['left'].set_visible(False) 
+    
+    plt.gca().axes.get_yaxis().set_visible(False) 
 
     for col in df.columns:
+        first_year = df.index[0]
+        last_year = df.index[-1]
+        first_val = df.loc[first_year, col]
+        last_val = df.loc[last_year, col]
+        
 
-        y_start = df.loc[first_year, col]
-        y_end = df.loc[last_year, col]
+        plt.scatter(first_year, first_val, color=colors[col], zorder=zorders[col])
+        plt.scatter(last_year, last_val, color=colors[col], zorder=zorders[col])
 
-        plt.scatter(first_year, y_start, color=colors[col], zorder=z_order[col])
-        plt.scatter(last_year, y_end, color=colors[col], zorder=z_order[col])
-
-        plt.text(
-            first_year - 0.2,
-            y_start,
-            f"{col.capitalize()} {y_start:.1f}%",
-            horizontalalignment='right',
-            verticalalignment='center',
-            color=colors[col],
-            fontsize=10
-        )
-
-        plt.text(
-            last_year + 0.2,
-            y_end,
-            f"{y_end:.1f}%",
-            horizontalalignment='left',
-            verticalalignment='center',
-            color=colors[col],
-            fontsize=10
-        )
-
-
-    plt.xticks(df.index, df.index.astype(str), horizontalalignment='center')
-
+        plt.text(first_year - 0.2, first_val, f'{col} {first_val}%', ha='right', va='center', color=colors[col])
+        plt.text(last_year + 0.2, last_val, f'{last_val}%', ha='left', va='center', color=colors[col])
 
     plt.tight_layout()
 
-    plt.savefig('files/plots/news.png')
+    plt.savefig(output_path)
